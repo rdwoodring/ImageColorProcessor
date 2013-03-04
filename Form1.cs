@@ -43,30 +43,44 @@ namespace ImageColorProcessor
             textBox1.Text = "";
             progressBar1.Value = 0;
             lblProgressPercentage.Text = "0%";
-            
-            //first things first... let's load up the image we're going to evaluate            
-            myImage = new Bitmap(@"C:\Users\rswoody\Desktop\700384_mag_1.jpg");
 
-            //next, let's calculate the image's total area.  we'll need it for several things, now and later
-            //so let's just get it out of the way
-            totalArea = myImage.Height * myImage.Width;
-
-            //let's set the progress bar up
-            progressBar1.Maximum = totalArea;
-
-            //we'll make sure there isn't already a job running
-            if (backgroundWorker1.IsBusy != true)
+            try
             {
-                //and if there isn't, let's let the user know we're starting
-                textBox1.Text += "Commencing Job\r\n";
-                //and let's actually start
-                backgroundWorker1.RunWorkerAsync();
+                //first things first... let's load up the image we're going to evaluate            
+                myImage = new Bitmap(@"C:\Users\rswoody\Documents\Wedding\Ms Mary.jpg");
+
+                //next, let's calculate the image's total area.  we'll need it for several things, now and later
+                //so let's just get it out of the way
+                totalArea = myImage.Height * myImage.Width;
+
+                //let's set the progress bar up
+                progressBar1.Maximum = totalArea;
+
+                //we'll make sure there isn't already a job running
+                if (backgroundWorker1.IsBusy != true)
+                {
+                    //and if there isn't, let's let the user know we're starting
+                    textBox1.Text += "Commencing Job\r\n";
+
+                    //enable the cancel button to let users stop the processing
+                    button2.Enabled = true;
+
+                    //and disable the start job button for now
+                    button1.Enabled = false;
+
+                    //and let's actually start
+                    backgroundWorker1.RunWorkerAsync();
+                }
+                //if there is a job running
+                else
+                {
+                    //let's tell the user so.  they'll have to hit cancel to stop it and start a new job
+                    MessageBox.Show("There is already a job in progress.  If you wish to start another, you will have to cancel the current job first.", "Job in Progress", MessageBoxButtons.OK);
+                }
             }
-            //if there is a job running
-            else
+            catch (ArgumentException exception)
             {
-                //let's tell the user so.  they'll have to hit cancel to stop it and start a new job
-                MessageBox.Show("There is already a job in progress.  If you wish to start another, you will have to cancel the current job first.", "Job in Progress", MessageBoxButtons.OK);
+                textBox1.Text += "Error encountered.  File may not be in specified location.  Please try again.";
             }
         }
 
@@ -168,11 +182,10 @@ namespace ImageColorProcessor
                     }
 
                     //lets calculate our progress
-                    progress++;                    
-
-                    //now lets report our progress back to the GUI so we can update our progress bar
-                    worker.ReportProgress((int)(progress/totalArea*100));
+                    progress++;                                        
                 }
+                //now lets report our progress back to the GUI so we can update our progress bar
+                worker.ReportProgress(progress);
             }
             e.Result = "The image is composed as follows:\r\n" +
                            "Red: " + (((double)redCount / totalArea) * 100).ToString() + "%\r\nOrange: " + (((double)orangeCount / totalArea) * 100).ToString() +
@@ -218,9 +231,9 @@ namespace ImageColorProcessor
         {
             if (progressBar1.Value < progressBar1.Maximum)
             {
-                this.progressBar1.PerformStep();
+                this.progressBar1.Value = e.ProgressPercentage;
             }
-            lblProgressPercentage.Text = e.ProgressPercentage.ToString() + "%";
+            lblProgressPercentage.Text = Math.Round((decimal)((progressBar1.Value / progressBar1.Maximum)*100),0) + "%";
         }
 
         // This event handler deals with the results of the background operation. 
@@ -241,6 +254,10 @@ namespace ImageColorProcessor
 
                 MessageBox.Show("Job complete.  Results are shown in status box", "Job Complete", MessageBoxButtons.OK);
             }
+
+            //and let's reactivate the start button, then deactivate the cancel button
+            button1.Enabled = true;
+            button2.Enabled = false;
         }
 
     }
