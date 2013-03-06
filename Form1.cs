@@ -395,5 +395,65 @@ namespace ImageColorProcessor
             button2.Enabled = false;
         }
 
+        private void ConvertRGBToLAB(Color pixelColor)
+        {
+            double r, g, b;
+            r = pixelColor.R / 255;
+            g = pixelColor.G / 255;
+            b = pixelColor.B / 255;
+
+            //making the RGB values linear and in the nominal range b/t 0.0 and 1.0
+            if (r > 0.04045)
+                r = Math.Pow(((r + 0.055) / 1.055), 2.4);
+            else
+                r = r / 12.92;
+
+            if (g > 0.04045)
+                g = Math.Pow(((g + 0.055) / 1.055), 2.4);
+            else
+                g = g / 12.92;
+
+            if (b > 0.04045)
+                b = Math.Pow(((b + 0.055) / 1.055), 2.4);
+            else
+                b = b / 12.92;
+
+            r *= 100;
+            g *= 100;
+            b *= 100;
+
+            //converting to XYZ color space
+            double x, y, z;
+            x = r * 0.4124 + g * 0.3576 + b * 0.1805;
+            y = r * 0.2126 + g * 0.7152 + b * 0.0722;
+            z = r * 0.0193 + g * 0.1192 + b * 0.9505;
+
+            //finally, converting XYZ color space to CIE-L*ab color space
+            x /= 95.047;
+            y /= 100;
+            z /= 108.883;
+
+            if (x > 0.008856)
+                x = Math.Pow(x, (1 / 3));
+            else
+                x = (7.787 * x) + (16 / 116);
+
+            if (y > 0.008856)
+                y = Math.Pow(y, (1 / 3));
+            else
+                y = (7.787 * y) + (16 / 116);
+
+            if (z > 0.008856)
+                z = Math.Pow(z, (1 / 3));
+            else
+                z = (7.787 * z) + (16 / 116);
+
+            //last step
+            double L, a, b;
+            L = (116 * y) - 16;
+            a = 500 * (x - y);
+            b = 200 * (y - z);
+        }
+
     }
 }
