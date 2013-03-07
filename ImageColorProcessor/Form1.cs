@@ -16,7 +16,10 @@ namespace ImageColorProcessor
         public Bitmap myImage; //the image
 
         //TODO: ugh this is cumbersome.  Let's create a color class later
-        public int redr, redg, redb, greenr, greeng, greenb, yellowr, yellowg, yellowb, bluer, blueg, blueb, oranger, orangeg, orangeb, pinkr, pinkg, pinkb, purpler, purpleg, purpleb;
+        public double redl, reda, redb, greenl, greena, greenb, yellowl, yellowa, yellowb, bluel, bluea, blueb, orangel, orangea, orangeb, pinkl, pinka, pinkb, teall, teala, tealb, purplel, purplea, purpleb, brownl, browna, brownb, grayl, graya, grayb, blackl, blacka, blackb, whitel, whitea, whiteb;
+        
+        //the converted LAB values for a pixel
+        public double L, a, b;
 
         public Form1()
         {
@@ -28,132 +31,152 @@ namespace ImageColorProcessor
         //TODO: ugh this is cumbersome.  Let's create a color class later
         private void InitializeColorLibrary()
         {
-            redr = 255;
-            redg = 0;
-            redb = 0;
+            redl = 53.2328817894157;
+            reda = 80.1093095249555;
+            redb = 67.2200683094151;
 
-            greenr = 0;
-            greeng = 128;
-            greenb = 0;
+            greenl = 46.228817846502;
+            greena = -51.6996473266658;
+            greenb = 49.8979523093553;
 
-            yellowr = 255;
-            yellowg = 255;
-            yellowb = 0;
+            yellowl = 97.1382469815799;
+            yellowa = -21.5559083327789;
+            yellowb = 94.4824854400185;
 
-            bluer = 0;
-            blueg = 0;
-            blueb = 255;
+            bluel = 32.3025866714813;
+            bluea = 79.1966617869831;
+            blueb = -107.863681038521;
 
-            oranger = 255;
-            orangeg = 165;
-            orangeb = 0;
+            orangel = 74.9321948475493;
+            orangea = 23.9360490682307;
+            orangeb = 78.9563071717174;
 
-            pinkr = 255;
-            pinkg = 192;
-            pinkb = 203;
+            pinkl = 83.5847988592782;
+            pinka = 24.1496610104581;
+            pinkb = 3.31538715087307;
 
-            purpler = 128;
-            purpleg = 0;
-            purpleb = 128;
+            teall = 48.2560738171712;
+            teala = -28.8415594623173;
+            tealb = -8.48105008590958;
+
+            purplel = 29.7821000963544;
+            purplea = 58.939837317824;
+            purpleb = -36.4979299618299;
+
+            brownl = 37.5218297481742;
+            browna = 49.6997828773777;
+            brownb = 30.5402671893619;
+
+            grayl = 53.5850134557251;
+            graya = 0.00315562034780559;
+            grayb = -0.00624356603593501;
+
+            blackl = -16;
+            blacka = 0;
+            blackb = 0;
+
+            whitel = 100;
+            whitea = 0.0052604999577488;
+            whiteb = -0.0104081845242465;
         }
 
-        private void EvaluateColorsEuclidean(BackgroundWorker worker, DoWorkEventArgs e)
-        {
-            long redCount, greenCount, blueCount, orangeCount, yellowCount, tealCount, purpleCount, pinkCount, whiteCount, grayCount, blackCount, transparentCount; //these keep track of how many of each color pixel there is
-            redCount = 0;
-            greenCount = 0;
-            blueCount = 0;
-            orangeCount = 0;
-            yellowCount = 0;
-            tealCount = 0;
-            purpleCount = 0;
-            pinkCount = 0;
-            whiteCount = 0;
-            grayCount = 0;
-            blackCount = 0;
-            transparentCount = 0;
+        //private void EvaluateColorsEuclidean(BackgroundWorker worker, DoWorkEventArgs e)
+        //{
+        //    long redCount, greenCount, blueCount, orangeCount, yellowCount, tealCount, purpleCount, pinkCount, whiteCount, grayCount, blackCount, transparentCount; //these keep track of how many of each color pixel there is
+        //    redCount = 0;
+        //    greenCount = 0;
+        //    blueCount = 0;
+        //    orangeCount = 0;
+        //    yellowCount = 0;
+        //    tealCount = 0;
+        //    purpleCount = 0;
+        //    pinkCount = 0;
+        //    whiteCount = 0;
+        //    grayCount = 0;
+        //    blackCount = 0;
+        //    transparentCount = 0;
 
-            int progress = 0;
+        //    int progress = 0;
 
-            //starting loop to itierate through each x value
-            for (int x = 0; x < this.myImage.Width; x++)
-            {
-                //starting loop to iterate through each y value
-                for (int y = 0; y < this.myImage.Height; y++)
-                {
-                    if (worker.CancellationPending == true)
-                    {
-                        e.Cancel = true;
-                        break;
-                    }
-                    else
-                    {
-                        //grab the pixel.  might need to change this later to use LockBits.  This is quite a heavy task as is, espeically for large images
-                        Color pixelColor = this.myImage.GetPixel(x, y);
+        //    //starting loop to itierate through each x value
+        //    for (int x = 0; x < this.myImage.Width; x++)
+        //    {
+        //        //starting loop to iterate through each y value
+        //        for (int y = 0; y < this.myImage.Height; y++)
+        //        {
+        //            if (worker.CancellationPending == true)
+        //            {
+        //                e.Cancel = true;
+        //                break;
+        //            }
+        //            else
+        //            {
+        //                //grab the pixel.  might need to change this later to use LockBits.  This is quite a heavy task as is, espeically for large images
+        //                Color pixelColor = this.myImage.GetPixel(x, y);
 
-                        //if a pixel is completely transparent, we are going to basically ignore it, 'cause we can't see it
-                        if (pixelColor.A <= 0)
-                        {
-                            transparentCount++;
-                        }
-                        //otherwise, let's do a little more evaluation, shall we?
-                        else
-                        {
-                            double distanceFromRed, distanceFromGreen, distanceFromYellow, distanceFromBlue, distanceFromOrange, distanceFromPink, distanceFromPurple;
-                            distanceFromRed = Math.Sqrt(Math.Pow((redr - pixelColor.R),2)  + Math.Pow((redg - pixelColor.G), 2) + Math.Pow((redb - pixelColor.B), 2));
-                            distanceFromGreen = Math.Sqrt(Math.Pow((greenr - pixelColor.R), 2) + Math.Pow((greeng - pixelColor.G), 2) + Math.Pow((greenb - pixelColor.B), 2));
-                            distanceFromYellow = Math.Sqrt(Math.Pow((yellowr - pixelColor.R), 2) + Math.Pow((yellowg - pixelColor.G), 2) + Math.Pow((yellowb - pixelColor.B), 2));
-                            distanceFromBlue = Math.Sqrt(Math.Pow((bluer - pixelColor.R), 2) + Math.Pow((blueg - pixelColor.G), 2) + Math.Pow((blueb - pixelColor.B), 2));
-                            distanceFromOrange = Math.Sqrt(Math.Pow((oranger - pixelColor.R), 2) + Math.Pow((orangeg - pixelColor.G), 2) + Math.Pow((orangeb - pixelColor.B), 2));
-                            distanceFromPink = Math.Sqrt(Math.Pow((pinkr - pixelColor.R), 2) + Math.Pow((pinkg - pixelColor.G), 2) + Math.Pow((pinkb - pixelColor.B), 2));
-                            distanceFromPurple = Math.Sqrt(Math.Pow((purpler - pixelColor.R), 2) + Math.Pow((purpleg - pixelColor.G), 2) + Math.Pow((purpleb - pixelColor.B), 2));
+        //                //if a pixel is completely transparent, we are going to basically ignore it, 'cause we can't see it
+        //                if (pixelColor.A <= 0)
+        //                {
+        //                    transparentCount++;
+        //                }
+        //                //otherwise, let's do a little more evaluation, shall we?
+        //                else
+        //                {
+        //                    double distanceFromRed, distanceFromGreen, distanceFromYellow, distanceFromBlue, distanceFromOrange, distanceFromPink, distanceFromPurple;
+        //                    distanceFromRed = Math.Sqrt(Math.Pow((redr - pixelColor.R),2)  + Math.Pow((redg - pixelColor.G), 2) + Math.Pow((redb - pixelColor.B), 2));
+        //                    distanceFromGreen = Math.Sqrt(Math.Pow((greenr - pixelColor.R), 2) + Math.Pow((greeng - pixelColor.G), 2) + Math.Pow((greenb - pixelColor.B), 2));
+        //                    distanceFromYellow = Math.Sqrt(Math.Pow((yellowr - pixelColor.R), 2) + Math.Pow((yellowg - pixelColor.G), 2) + Math.Pow((yellowb - pixelColor.B), 2));
+        //                    distanceFromBlue = Math.Sqrt(Math.Pow((bluer - pixelColor.R), 2) + Math.Pow((blueg - pixelColor.G), 2) + Math.Pow((blueb - pixelColor.B), 2));
+        //                    distanceFromOrange = Math.Sqrt(Math.Pow((oranger - pixelColor.R), 2) + Math.Pow((orangeg - pixelColor.G), 2) + Math.Pow((orangeb - pixelColor.B), 2));
+        //                    distanceFromPink = Math.Sqrt(Math.Pow((pinkr - pixelColor.R), 2) + Math.Pow((pinkg - pixelColor.G), 2) + Math.Pow((pinkb - pixelColor.B), 2));
+        //                    distanceFromPurple = Math.Sqrt(Math.Pow((purpler - pixelColor.R), 2) + Math.Pow((purpleg - pixelColor.G), 2) + Math.Pow((purpleb - pixelColor.B), 2));
 
-                            if ((distanceFromRed < distanceFromGreen) && (distanceFromRed>distanceFromYellow) && (distanceFromRed<distanceFromBlue) && (distanceFromRed < distanceFromOrange) && (distanceFromRed<distanceFromPink) && (distanceFromRed<distanceFromPurple))
-                            {
-                                redCount++;
-                            }
-                            else if ((distanceFromGreen < distanceFromRed) && (distanceFromGreen < distanceFromYellow) && (distanceFromGreen < distanceFromBlue) && (distanceFromGreen < distanceFromOrange) && (distanceFromGreen < distanceFromPink) && (distanceFromGreen < distanceFromPurple))
-                            {
-                                greenCount++;
-                            }
-                            else if ((distanceFromYellow < distanceFromRed) && (distanceFromYellow < distanceFromGreen) && (distanceFromYellow < distanceFromBlue) && (distanceFromYellow < distanceFromOrange) && (distanceFromYellow < distanceFromPink) && (distanceFromYellow < distanceFromPurple))
-                            {
-                                yellowCount++;
-                            }
-                            else if ((distanceFromBlue < distanceFromRed) && (distanceFromBlue < distanceFromGreen) && (distanceFromBlue < distanceFromYellow) && (distanceFromBlue < distanceFromOrange) && (distanceFromBlue < distanceFromPink) && (distanceFromBlue < distanceFromPurple))
-                            {
-                                blueCount++;
-                            }
-                            else if ((distanceFromOrange < distanceFromRed) && (distanceFromOrange < distanceFromGreen) && (distanceFromOrange < distanceFromYellow) && (distanceFromOrange < distanceFromBlue) && (distanceFromOrange < distanceFromPink) && (distanceFromOrange < distanceFromPurple))
-                            {
-                                orangeCount++;
-                            }
-                            else if ((distanceFromPink < distanceFromRed) && (distanceFromPink < distanceFromGreen) && (distanceFromPink < distanceFromYellow) && (distanceFromPink < distanceFromBlue) && (distanceFromPink < distanceFromOrange) && (distanceFromPink < distanceFromPurple))
-                            {
-                                pinkCount++;
-                            }
-                            else if ((distanceFromPurple < distanceFromRed) && (distanceFromPurple < distanceFromGreen) && (distanceFromPurple < distanceFromYellow) && (distanceFromPurple < distanceFromBlue) && (distanceFromPurple < distanceFromOrange) && (distanceFromPurple < distanceFromPink))
-                            {
-                                purpleCount++;
-                            }
-                        }
-                    }
+        //                    if ((distanceFromRed < distanceFromGreen) && (distanceFromRed>distanceFromYellow) && (distanceFromRed<distanceFromBlue) && (distanceFromRed < distanceFromOrange) && (distanceFromRed<distanceFromPink) && (distanceFromRed<distanceFromPurple))
+        //                    {
+        //                        redCount++;
+        //                    }
+        //                    else if ((distanceFromGreen < distanceFromRed) && (distanceFromGreen < distanceFromYellow) && (distanceFromGreen < distanceFromBlue) && (distanceFromGreen < distanceFromOrange) && (distanceFromGreen < distanceFromPink) && (distanceFromGreen < distanceFromPurple))
+        //                    {
+        //                        greenCount++;
+        //                    }
+        //                    else if ((distanceFromYellow < distanceFromRed) && (distanceFromYellow < distanceFromGreen) && (distanceFromYellow < distanceFromBlue) && (distanceFromYellow < distanceFromOrange) && (distanceFromYellow < distanceFromPink) && (distanceFromYellow < distanceFromPurple))
+        //                    {
+        //                        yellowCount++;
+        //                    }
+        //                    else if ((distanceFromBlue < distanceFromRed) && (distanceFromBlue < distanceFromGreen) && (distanceFromBlue < distanceFromYellow) && (distanceFromBlue < distanceFromOrange) && (distanceFromBlue < distanceFromPink) && (distanceFromBlue < distanceFromPurple))
+        //                    {
+        //                        blueCount++;
+        //                    }
+        //                    else if ((distanceFromOrange < distanceFromRed) && (distanceFromOrange < distanceFromGreen) && (distanceFromOrange < distanceFromYellow) && (distanceFromOrange < distanceFromBlue) && (distanceFromOrange < distanceFromPink) && (distanceFromOrange < distanceFromPurple))
+        //                    {
+        //                        orangeCount++;
+        //                    }
+        //                    else if ((distanceFromPink < distanceFromRed) && (distanceFromPink < distanceFromGreen) && (distanceFromPink < distanceFromYellow) && (distanceFromPink < distanceFromBlue) && (distanceFromPink < distanceFromOrange) && (distanceFromPink < distanceFromPurple))
+        //                    {
+        //                        pinkCount++;
+        //                    }
+        //                    else if ((distanceFromPurple < distanceFromRed) && (distanceFromPurple < distanceFromGreen) && (distanceFromPurple < distanceFromYellow) && (distanceFromPurple < distanceFromBlue) && (distanceFromPurple < distanceFromOrange) && (distanceFromPurple < distanceFromPink))
+        //                    {
+        //                        purpleCount++;
+        //                    }
+        //                }
+        //            }
 
-                    //lets calculate our progress
-                    progress++;
-                }
-                //now lets report our progress back to the GUI so we can update our progress bar
-                worker.ReportProgress(progress);
-            }
-            e.Result = "The image is composed as follows:\r\n" +
-                           "Red: " + (((double)redCount / totalArea) * 100).ToString() + "%\r\nOrange: " + (((double)orangeCount / totalArea) * 100).ToString() +
-                           "%\r\nYellow: " + (((double)yellowCount / totalArea) * 100).ToString() + "%\r\nGreen: " + (((double)greenCount / totalArea) * 100).ToString() +
-                           "%\r\nTeal: " + (((double)tealCount / totalArea) * 100).ToString() + "%\r\nBlue: " + (((double)blueCount / totalArea) * 100).ToString() +
-                           "%\r\nPurple: " + (((double)purpleCount / totalArea) * 100).ToString() + "%\r\nPink: " + (((double)pinkCount / totalArea) * 100).ToString() + "%\r\nWhite: " +
-                           (((double)whiteCount / totalArea) * 100).ToString() + "%\r\nGray: " + (((double)grayCount / totalArea) * 100).ToString() +
-                           "%\r\nBlack: " + (((double)blackCount / totalArea) * 100).ToString() + "%\r\nTransparent: " + (((double)transparentCount / totalArea) * 100).ToString() + "%";
+        //            //lets calculate our progress
+        //            progress++;
+        //        }
+        //        //now lets report our progress back to the GUI so we can update our progress bar
+        //        worker.ReportProgress(progress);
+        //    }
+        //    e.Result = "The image is composed as follows:\r\n" +
+        //                   "Red: " + (((double)redCount / totalArea) * 100).ToString() + "%\r\nOrange: " + (((double)orangeCount / totalArea) * 100).ToString() +
+        //                   "%\r\nYellow: " + (((double)yellowCount / totalArea) * 100).ToString() + "%\r\nGreen: " + (((double)greenCount / totalArea) * 100).ToString() +
+        //                   "%\r\nTeal: " + (((double)tealCount / totalArea) * 100).ToString() + "%\r\nBlue: " + (((double)blueCount / totalArea) * 100).ToString() +
+        //                   "%\r\nPurple: " + (((double)purpleCount / totalArea) * 100).ToString() + "%\r\nPink: " + (((double)pinkCount / totalArea) * 100).ToString() + "%\r\nWhite: " +
+        //                   (((double)whiteCount / totalArea) * 100).ToString() + "%\r\nGray: " + (((double)grayCount / totalArea) * 100).ToString() +
+        //                   "%\r\nBlack: " + (((double)blackCount / totalArea) * 100).ToString() + "%\r\nTransparent: " + (((double)transparentCount / totalArea) * 100).ToString() + "%";
 
-        }
+        //}
 
         private void InitializeBackgroundWorker()
         {
@@ -358,7 +381,8 @@ namespace ImageColorProcessor
             BackgroundWorker worker = sender as BackgroundWorker;
 
             //EvaluateImage(worker, e);            
-            EvaluateColorsEuclidean(worker, e);
+            //EvaluateColorsEuclidean(worker, e);
+            EvaluateColorsDelta(worker, e);
         }
 
         // This event handler updates the progress. 
@@ -448,12 +472,112 @@ namespace ImageColorProcessor
             else
                 z = (7.787 * z) + (16 / 116);
 
-            //last step
-            double L, a, b;
+            //last step           
             L = (116 * y) - 16;
             a = 500 * (x - y);
             b = 200 * (y - z);
         }
 
+        private void EvaluateColorsDelta(BackgroundWorker worker, DoWorkEventArgs e)
+        {
+            long redCount, greenCount, blueCount, orangeCount, yellowCount, tealCount, purpleCount, pinkCount, whiteCount, grayCount, blackCount, brownCount, transparentCount; //these keep track of how many of each color pixel there is
+            redCount = 0;
+            greenCount = 0;
+            blueCount = 0;
+            orangeCount = 0;
+            yellowCount = 0;
+            tealCount = 0;
+            purpleCount = 0;
+            pinkCount = 0;
+            whiteCount = 0;
+            grayCount = 0;
+            blackCount = 0;
+            brownCount = 0;
+            transparentCount = 0;
+
+            int progress = 0;
+
+            //starting loop to itierate through each x value
+            for (int x = 0; x < this.myImage.Width; x++)
+            {
+                //starting loop to iterate through each y value
+                for (int y = 0; y < this.myImage.Height; y++)
+                {
+                    if (worker.CancellationPending == true)
+                    {
+                        e.Cancel = true;
+                        break;
+                    }
+                    else
+                    {
+                        //grab the pixel.  might need to change this later to use LockBits.  This is quite a heavy task as is, espeically for large images
+                        Color pixelColor = this.myImage.GetPixel(x, y);
+
+                        //pass the pixel to our conversion method.
+                        //this method will convert RGB colorspace to XYZ color space
+                        //then XYZ colorspace to L*ab color space
+                        //the resulting LAB values are in public variables L, a, b
+                        ConvertRGBToLAB(pixelColor);
+
+                        //let's set up some variables to hold our distances
+                        double distfromred=0, distfromgreen=0, distfromblue=0, distfromorange=0, distfromyellow=0, distfromteal=0, distfrompurple=0, 
+                            distfrompink=0, distfromwhite=0, distfromgray=0, distfromblack=0, distfrombrown=0;
+
+                        //now let's call our comparison method
+                        distfromred = CalculateDeltaE(redl, reda, redb, L, a, b);
+                        distfromgreen = CalculateDeltaE(greenl, greena, greenb, L, a, b);
+                        distfromblue = CalculateDeltaE(bluel, bluea, blueb, L, a, b);
+                        distfromorange = CalculateDeltaE(orangel, orangea, orangeb, L, a, b);
+                        distfromyellow = CalculateDeltaE(yellowl, yellowa, yellowb, L, a, b);
+                        distfromteal = CalculateDeltaE(teall, teala, tealb, L, a, b);
+                        distfrompurple = CalculateDeltaE(purplel, purplea, purpleb, L, a, b);
+                        distfrompink = CalculateDeltaE(pinkl, pinka, pinkb, L, a, b);
+                        distfromwhite = CalculateDeltaE(whitel, whitea, whiteb, L, a, b);
+                        distfromgray = CalculateDeltaE(grayl, graya, grayb, L, a, b);
+                        distfromblack = CalculateDeltaE(blackl, blacka, blackb, L, a, b);
+                        distfrombrown = CalculateDeltaE(brownl, browna, brownb, L, a, b);
+                    }
+
+                    //lets calculate our progress
+                    progress++;
+                }
+                //now lets report our progress back to the GUI so we can update our progress bar
+                worker.ReportProgress(progress);
+            }
+
+            e.Result = "The image is composed as follows:\r\n" +
+                           "Red: " + (((double)redCount / totalArea) * 100).ToString() + "%\r\nOrange: " + (((double)orangeCount / totalArea) * 100).ToString() +
+                           "%\r\nYellow: " + (((double)yellowCount / totalArea) * 100).ToString() + "%\r\nGreen: " + (((double)greenCount / totalArea) * 100).ToString() +
+                           "%\r\nTeal: " + (((double)tealCount / totalArea) * 100).ToString() + "%\r\nBlue: " + (((double)blueCount / totalArea) * 100).ToString() +
+                           "%\r\nPurple: " + (((double)purpleCount / totalArea) * 100).ToString() + "%\r\nPink: " + (((double)pinkCount / totalArea) * 100).ToString() + "%\r\nWhite: " +
+                           (((double)whiteCount / totalArea) * 100).ToString() + "%\r\nGray: " + (((double)grayCount / totalArea) * 100).ToString() +
+                           "%\r\nBlack: " + (((double)blackCount / totalArea) * 100).ToString() + "%\r\nTransparent: " + (((double)transparentCount / totalArea) * 100).ToString() + "%";
+
+        }
+
+        private double CalculateDeltaE(double basel, double basea, double baseb, double pixell, double pixela, double pixelb)
+        {
+            double distancebetween=0;
+
+            double deltal, kl, sl, deltac, c1, c2, kc, sc, deltah, deltaa, deltab, kh, sh;
+
+            deltal = basel - pixell;
+            kl = 1;
+            sl = 1;
+            c1 = (Math.Sqrt(Math.Pow(basea, 2) + Math.Pow(baseb, 2))); 
+            c2 = (Math.Sqrt(Math.Pow(pixela, 2) + Math.Pow(pixelb, 2)));
+            deltac = c1 - c2;
+            kc = 1;
+            sc = 1 + (.045 * c1);
+            deltaa = Math.Sqrt((Math.Pow(basea, 2) + Math.Pow(pixela, 2)));
+            deltab = Math.Sqrt((Math.Pow(baseb, 2) + Math.Pow(pixelb, 2)));
+            deltah = Math.Sqrt((Math.Pow(deltaa,2) + Math.Pow(deltab,2) - Math.Pow(deltac,2)));
+            kh = 1;
+            sh = 1 + (.015 * c1);
+
+            distancebetween = Math.Sqrt(((Math.Pow((deltal/kl*sl),2)) + (Math.Pow((deltac/kc*sc),2)) + (Math.Pow((deltah/kh*sh),2))));
+
+            return distancebetween;
+        }
     }
 }
