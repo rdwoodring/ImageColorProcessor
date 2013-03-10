@@ -71,7 +71,7 @@ namespace ImageColorProcessor
             graya = 0.00315562034780559;
             grayb = -0.00624356603593501;
 
-            blackl = -16;
+            blackl = 0;
             blacka = 0;
             blackb = 0;
 
@@ -419,38 +419,37 @@ namespace ImageColorProcessor
             button2.Enabled = false;
         }
 
-        private void ConvertRGBToLAB(Color pixelColor)
+        private void ConvertRGBToLAB(double red, double green, double blue)
         {
-            double r, g, b;
-            r = pixelColor.R / 255;
-            g = pixelColor.G / 255;
-            b = pixelColor.B / 255;
+            red /= 255;
+            green /= 255;
+            blue /= 255;
 
             //making the RGB values linear and in the nominal range b/t 0.0 and 1.0
-            if (r > 0.04045)
-                r = Math.Pow(((r + 0.055) / 1.055), 2.4);
+            if (red > 0.04045)
+                red = Math.Pow(((red + 0.055) / 1.055), 2.4);
             else
-                r = r / 12.92;
+                red = red / 12.92;
 
-            if (g > 0.04045)
-                g = Math.Pow(((g + 0.055) / 1.055), 2.4);
+            if (green > 0.04045)
+                green = Math.Pow(((green + 0.055) / 1.055), 2.4);
             else
-                g = g / 12.92;
+                green = green / 12.92;
 
-            if (b > 0.04045)
-                b = Math.Pow(((b + 0.055) / 1.055), 2.4);
+            if (blue > 0.04045)
+                blue = Math.Pow(((blue + 0.055) / 1.055), 2.4);
             else
-                b = b / 12.92;
+                blue = blue / 12.92;
 
-            r *= 100;
-            g *= 100;
-            b *= 100;
+            red *= 100;
+            green *= 100;
+            blue *= 100;
 
             //converting to XYZ color space
             double x, y, z;
-            x = r * 0.4124 + g * 0.3576 + b * 0.1805;
-            y = r * 0.2126 + g * 0.7152 + b * 0.0722;
-            z = r * 0.0193 + g * 0.1192 + b * 0.9505;
+            x = red * 0.4124 + green * 0.3576 + blue * 0.1805;
+            y = red * 0.2126 + green * 0.7152 + blue * 0.0722;
+            z = red * 0.0193 + green * 0.1192 + blue * 0.9505;
 
             //finally, converting XYZ color space to CIE-L*ab color space
             x /= 95.047;
@@ -458,21 +457,22 @@ namespace ImageColorProcessor
             z /= 108.883;
 
             if (x > 0.008856)
-                x = Math.Pow(x, (1 / 3));
+                x = Math.Pow(x, (.3333333333));
             else
                 x = (7.787 * x) + (16 / 116);
 
             if (y > 0.008856)
-                y = Math.Pow(y, (1 / 3));
+                y = Math.Pow(y, (.3333333333));
             else
                 y = (7.787 * y) + (16 / 116);
 
             if (z > 0.008856)
-                z = Math.Pow(z, (1 / 3));
+                z = Math.Pow(z, (.3333333333));
             else
                 z = (7.787 * z) + (16 / 116);
 
-            //last step           
+            //last step
+            //double L, a, b;
             L = (116 * y) - 16;
             a = 500 * (x - y);
             b = 200 * (y - z);
@@ -517,7 +517,7 @@ namespace ImageColorProcessor
                         //this method will convert RGB colorspace to XYZ color space
                         //then XYZ colorspace to L*ab color space
                         //the resulting LAB values are in public variables L, a, b
-                        ConvertRGBToLAB(pixelColor);
+                        ConvertRGBToLAB(pixelColor.R, pixelColor.G, pixelColor.B);
 
                         //let's set up some variables to hold our distances
                         double distfromred=0, distfromgreen=0, distfromblue=0, distfromorange=0, distfromyellow=0, distfromteal=0, distfrompurple=0, 
@@ -551,7 +551,7 @@ namespace ImageColorProcessor
                            "%\r\nTeal: " + (((double)tealCount / totalArea) * 100).ToString() + "%\r\nBlue: " + (((double)blueCount / totalArea) * 100).ToString() +
                            "%\r\nPurple: " + (((double)purpleCount / totalArea) * 100).ToString() + "%\r\nPink: " + (((double)pinkCount / totalArea) * 100).ToString() + "%\r\nWhite: " +
                            (((double)whiteCount / totalArea) * 100).ToString() + "%\r\nGray: " + (((double)grayCount / totalArea) * 100).ToString() +
-                           "%\r\nBlack: " + (((double)blackCount / totalArea) * 100).ToString() + "%\r\nTransparent: " + (((double)transparentCount / totalArea) * 100).ToString() + "%";
+                           "%\r\nBlack: " + (((double)blackCount / totalArea) * 100).ToString() + "%\r\nBrown: " + (((double)brownCount/totalArea)*100).ToString() + "%\r\nTransparent: " + (((double)transparentCount / totalArea) * 100).ToString() + "%";
 
         }
 
@@ -559,23 +559,50 @@ namespace ImageColorProcessor
         {
             double distancebetween=0;
 
-            double deltal, kl, sl, deltac, c1, c2, kc, sc, deltah, deltaa, deltab, kh, sh;
+            //delta-3 1976
+            distancebetween = Math.Sqrt(Math.Pow(basel - pixell, 2) + Math.Pow(basea - pixela, 2) + Math.Pow(baseb - pixelb, 2));
 
-            deltal = basel - pixell;
-            kl = 1;
-            sl = 1;
-            c1 = (Math.Sqrt(Math.Pow(basea, 2) + Math.Pow(baseb, 2))); 
-            c2 = (Math.Sqrt(Math.Pow(pixela, 2) + Math.Pow(pixelb, 2)));
-            deltac = c1 - c2;
-            kc = 1;
-            sc = 1 + (.045 * c1);
-            deltaa = Math.Sqrt((Math.Pow(basea, 2) + Math.Pow(pixela, 2)));
-            deltab = Math.Sqrt((Math.Pow(baseb, 2) + Math.Pow(pixelb, 2)));
-            deltah = Math.Sqrt((Math.Pow(deltaa,2) + Math.Pow(deltab,2) - Math.Pow(deltac,2)));
-            kh = 1;
-            sh = 1 + (.015 * c1);
+            //delta-e94 (easyrgb.com)
+            //double whitel = 1, whitec = 1, whiteh = 1, xc1, xc2, xdl, xdc, xde, xdh, xsc, xsh;
 
-            distancebetween = Math.Sqrt(((Math.Pow((deltal/kl*sl),2)) + (Math.Pow((deltac/kc*sc),2)) + (Math.Pow((deltah/kh*sh),2))));
+            //xc1 = Math.Sqrt((Math.Pow(basea, 2)) + (Math.Pow(baseb, 2)));
+            //xc2 = Math.Sqrt((Math.Pow(pixela, 2)) + (Math.Pow(pixelb, 2)));
+            //xdl = pixell - basel;
+            //xdc = xc2 - xc1;
+            //xde = Math.Sqrt(((basel - pixell) * (basel - pixell)) + ((basea - pixela) * (basea * pixela)) + ((baseb - pixelb) * (baseb - pixelb)));
+
+            //if (Math.Sqrt(xde) > Math.Sqrt(Math.Abs(xdl)) + Math.Sqrt(Math.Abs(xdc)))
+            //    xdh = Math.Sqrt((xde * xde) - (xdl * xdl) - (xdc * xdc));
+            //else
+            //    xdh = 0;
+
+            //xsc = 1 + (.045 * xc1);
+            //xsh = 1 + (.015 * xc1);
+            //xdl /= whitel;
+            //xdc /= whitec * xsc;
+            //xdh /= whiteh * xsh;
+
+            //distancebetween = Math.Sqrt(Math.Pow(xdl, 2) + Math.Pow(xdc, 2) + Math.Pow(xdh, 2));
+
+            
+            //delta-e94 (bruce lindbloom)
+            //double deltal, kl, sl, deltac, c1, c2, kc, sc, deltah, deltaa, deltab, kh, sh;
+
+            //deltal = basel - pixell;
+            //kl = 1;
+            //sl = 1;
+            //c1 = (Math.Sqrt(Math.Pow(basea, 2) + Math.Pow(baseb, 2)));
+            //c2 = (Math.Sqrt(Math.Pow(pixela, 2) + Math.Pow(pixelb, 2)));
+            //deltac = c1 - c2;
+            //kc = 1;
+            //sc = 1 + (.045 * c1);
+            //deltaa = Math.Sqrt((Math.Pow(basea, 2) + Math.Pow(pixela, 2)));
+            //deltab = Math.Sqrt((Math.Pow(baseb, 2) + Math.Pow(pixelb, 2)));
+            //deltah = Math.Sqrt((Math.Pow(deltaa, 2) + Math.Pow(deltab, 2) - Math.Pow(deltac, 2)));
+            //kh = 1;
+            //sh = 1 + (.015 * c1);
+
+            //distancebetween = Math.Sqrt(((Math.Pow((deltal / kl * sl), 2)) + (Math.Pow((deltac / kc * sc), 2)) + (Math.Pow((deltah / kh * sh), 2))));
 
             return distancebetween;
         }
