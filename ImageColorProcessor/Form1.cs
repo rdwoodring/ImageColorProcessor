@@ -560,7 +560,7 @@ namespace ImageColorProcessor
             double distancebetween=0;
 
             //delta-3 1976
-            distancebetween = Math.Sqrt(Math.Pow(basel - pixell, 2) + Math.Pow(basea - pixela, 2) + Math.Pow(baseb - pixelb, 2));
+            //distancebetween = Math.Sqrt(Math.Pow(basel - pixell, 2) + Math.Pow(basea - pixela, 2) + Math.Pow(baseb - pixelb, 2));
 
             //delta-e94 (easyrgb.com)
             //double whitel = 1, whitec = 1, whiteh = 1, xc1, xc2, xdl, xdc, xde, xdh, xsc, xsh;
@@ -586,23 +586,23 @@ namespace ImageColorProcessor
 
             
             //delta-e94 (bruce lindbloom)
-            //double deltal, kl, sl, deltac, c1, c2, kc, sc, deltah, deltaa, deltab, kh, sh;
+            double deltal, kl, sl, deltac, c1, c2, kc, sc, deltah, deltaa, deltab, kh, sh;
 
-            //deltal = basel - pixell;
-            //kl = 1;
-            //sl = 1;
-            //c1 = (Math.Sqrt(Math.Pow(basea, 2) + Math.Pow(baseb, 2)));
-            //c2 = (Math.Sqrt(Math.Pow(pixela, 2) + Math.Pow(pixelb, 2)));
-            //deltac = c1 - c2;
-            //kc = 1;
-            //sc = 1 + (.045 * c1);
-            //deltaa = Math.Sqrt((Math.Pow(basea, 2) + Math.Pow(pixela, 2)));
-            //deltab = Math.Sqrt((Math.Pow(baseb, 2) + Math.Pow(pixelb, 2)));
-            //deltah = Math.Sqrt((Math.Pow(deltaa, 2) + Math.Pow(deltab, 2) - Math.Pow(deltac, 2)));
-            //kh = 1;
-            //sh = 1 + (.015 * c1);
+            deltal = basel - pixell;
+            kl = 1;
+            sl = 1;
+            c1 = (Math.Sqrt(Math.Pow(basea, 2) + Math.Pow(baseb, 2)));
+            c2 = (Math.Sqrt(Math.Pow(pixela, 2) + Math.Pow(pixelb, 2)));
+            deltac = c1 - c2;
+            kc = 1;
+            sc = 1 + (.045 * c1);
+            deltaa = basea - pixela;
+            deltab =baseb - pixelb;
+            deltah = Math.Sqrt(Math.Pow(deltaa, 2) + Math.Pow(deltab, 2) - Math.Pow(deltac, 2));
+            kh = 1;
+            sh = 1 + (.015 * c1);
 
-            //distancebetween = Math.Sqrt(((Math.Pow((deltal / kl * sl), 2)) + (Math.Pow((deltac / kc * sc), 2)) + (Math.Pow((deltah / kh * sh), 2))));
+            distancebetween = Math.Sqrt(((Math.Pow((deltal / kl * sl), 2)) + (Math.Pow((deltac / kc * sc), 2)) + (Math.Pow((deltah / kh * sh), 2))));
 
             return distancebetween;
         }
