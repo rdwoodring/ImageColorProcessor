@@ -421,6 +421,8 @@ namespace ImageColorProcessor
 
         private void ConvertRGBToLAB(double red, double green, double blue)
         {
+            //thanks to www.easyrgb.com for the RGB to LAB conversion algorithm
+
             red /= 255;
             green /= 255;
             blue /= 255;
@@ -558,34 +560,9 @@ namespace ImageColorProcessor
         private double CalculateDeltaE(double basel, double basea, double baseb, double pixell, double pixela, double pixelb)
         {
             double distancebetween=0;
-
-            //delta-3 1976
-            //distancebetween = Math.Sqrt(Math.Pow(basel - pixell, 2) + Math.Pow(basea - pixela, 2) + Math.Pow(baseb - pixelb, 2));
-
-            //delta-e94 (easyrgb.com)
-            //double whitel = 1, whitec = 1, whiteh = 1, xc1, xc2, xdl, xdc, xde, xdh, xsc, xsh;
-
-            //xc1 = Math.Sqrt((Math.Pow(basea, 2)) + (Math.Pow(baseb, 2)));
-            //xc2 = Math.Sqrt((Math.Pow(pixela, 2)) + (Math.Pow(pixelb, 2)));
-            //xdl = pixell - basel;
-            //xdc = xc2 - xc1;
-            //xde = Math.Sqrt(((basel - pixell) * (basel - pixell)) + ((basea - pixela) * (basea * pixela)) + ((baseb - pixelb) * (baseb - pixelb)));
-
-            //if (Math.Sqrt(xde) > Math.Sqrt(Math.Abs(xdl)) + Math.Sqrt(Math.Abs(xdc)))
-            //    xdh = Math.Sqrt((xde * xde) - (xdl * xdl) - (xdc * xdc));
-            //else
-            //    xdh = 0;
-
-            //xsc = 1 + (.045 * xc1);
-            //xsh = 1 + (.015 * xc1);
-            //xdl /= whitel;
-            //xdc /= whitec * xsc;
-            //xdh /= whiteh * xsh;
-
-            //distancebetween = Math.Sqrt(Math.Pow(xdl, 2) + Math.Pow(xdc, 2) + Math.Pow(xdh, 2));
-
-            
-            //delta-e94 (bruce lindbloom)
+                     
+            //delta-e94 calculation
+            //my thanks to Bruce Lindbloom at www.brucelindbloom.com for the formula and math
             double deltal, kl, sl, deltac, c1, c2, kc, sc, deltah, deltaa, deltab, kh, sh;
 
             deltal = basel - pixell;
@@ -602,7 +579,7 @@ namespace ImageColorProcessor
             kh = 1;
             sh = 1 + (.015 * c1);
 
-            distancebetween = Math.Sqrt(((Math.Pow((deltal / kl * sl), 2)) + (Math.Pow((deltac / kc * sc), 2)) + (Math.Pow((deltah / kh * sh), 2))));
+            distancebetween = Math.Sqrt(((Math.Pow((deltal / (kl * sl)), 2)) + (Math.Pow((deltac / (kc * sc)), 2)) + (Math.Pow((deltah / (kh * sh)), 2))));
 
             return distancebetween;
         }
