@@ -498,6 +498,11 @@ namespace ImageColorProcessor
             transparentCount = 0;
 
             int progress = 0;
+            
+            //for debug
+            int errorcount = 0;
+
+            string closestcolor;
 
             //starting loop to itierate through each x value
             for (int x = 0; x < this.myImage.Width; x++)
@@ -538,6 +543,75 @@ namespace ImageColorProcessor
                         distfromgray = CalculateDeltaE(grayl, graya, grayb, L, a, b);
                         distfromblack = CalculateDeltaE(blackl, blacka, blackb, L, a, b);
                         distfrombrown = CalculateDeltaE(brownl, browna, brownb, L, a, b);
+
+
+                        SortedDictionary<double, string> d = new SortedDictionary<double, string>();
+
+                        try
+                        {
+                            d.Add(distfromred, "red");
+                            d.Add(distfromgreen, "green");
+                            d.Add(distfromblue, "blue");
+                            d.Add(distfromorange, "orange");
+                            d.Add(distfromyellow, "yellow");
+                            d.Add(distfromteal, "teal");
+                            d.Add(distfrompurple, "purple");
+                            d.Add(distfrompink, "pink");
+                            d.Add(distfromwhite, "white");
+                            d.Add(distfromgray, "gray");
+                            d.Add(distfromblack, "black");
+                            d.Add(distfrombrown, "brown");
+                        }
+                        catch (ArgumentException)
+                        {
+                            //frick, that's an error
+                            //it means two or more colors are equal
+                            //it DOESN'T mean that those two colors are the minimum
+                            //will need to fix this at some point
+                            errorcount++;
+                        }
+
+                        closestcolor = d.Values.First();
+
+                        switch (closestcolor)
+                        {
+                            case "red":
+                                redCount++;
+                                break;
+                            case "green":
+                                greenCount++;
+                                break;
+                            case "blue":
+                                blueCount++;
+                                break;
+                            case "orange":
+                                orangeCount++;
+                                break;
+                            case "yellow":
+                                yellowCount++;
+                                break;
+                            case "teal":
+                                tealCount++;
+                                break;
+                            case "purple":
+                                purpleCount++;
+                                break;
+                            case "pink":
+                                pinkCount++;
+                                break;
+                            case "white":
+                                whiteCount++;
+                                break;
+                            case "gray":
+                                grayCount++;
+                                break;
+                            case "black":
+                                blackCount++;
+                                break;
+                            case "brown":
+                                brownCount++;
+                                break;
+                        }
                     }
 
                     //lets calculate our progress
@@ -553,7 +627,8 @@ namespace ImageColorProcessor
                            "%\r\nTeal: " + (((double)tealCount / totalArea) * 100).ToString() + "%\r\nBlue: " + (((double)blueCount / totalArea) * 100).ToString() +
                            "%\r\nPurple: " + (((double)purpleCount / totalArea) * 100).ToString() + "%\r\nPink: " + (((double)pinkCount / totalArea) * 100).ToString() + "%\r\nWhite: " +
                            (((double)whiteCount / totalArea) * 100).ToString() + "%\r\nGray: " + (((double)grayCount / totalArea) * 100).ToString() +
-                           "%\r\nBlack: " + (((double)blackCount / totalArea) * 100).ToString() + "%\r\nBrown: " + (((double)brownCount/totalArea)*100).ToString() + "%\r\nTransparent: " + (((double)transparentCount / totalArea) * 100).ToString() + "%";
+                           "%\r\nBlack: " + (((double)blackCount / totalArea) * 100).ToString() + "%\r\nBrown: " + (((double)brownCount/totalArea)*100).ToString() + "%\r\nTransparent: " + (((double)transparentCount / totalArea) * 100).ToString() +
+                           "%\r\nErrors:" + errorcount.ToString() ;
 
         }
 
